@@ -180,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
                 }
 
 
+
+
                 publishProgress(activity.getString(R.string.text_download_polls_otpions));
                 PollOptionRepo pollOptionRepo= new PollOptionRepo(activity);
                 ArrayList<PollOption> pollOptions = (ArrayList<PollOption>) pollOptionRepo.findAll();
@@ -195,21 +197,23 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                publishProgress(activity.getString(R.string.text_download_products_competity));
-                ProductRepo productRepo = new ProductRepo(activity);
-                ArrayList<Product> products = (ArrayList<Product>) productRepo.findByCompanyId(company.getId());
 
-                if(products.size()==0){
-                    productRepo.deleteAll();
-                    products = AuditUtil.getListProductsCompetity(company.getId(),0);
-                    if(products.size()!=0){
-                        for(Product p: products){
-                            productRepo.create(p);
-                        }
-                    } else  {
-                        //return  false;
-                    }
-                }
+ //               NOTA: DESHABILITADO TEMPORALMENTE POR PLAN CAMISETA
+//                publishProgress(activity.getString(R.string.text_download_products_competity));
+//                ProductRepo productRepo = new ProductRepo(activity);
+//                ArrayList<Product> products = (ArrayList<Product>) productRepo.findByCompanyId(company.getId());
+
+//                if(products.size()==0){
+//                    productRepo.deleteAll();
+//                    products = AuditUtil.getListProductsCompetity(company.getId(),0);
+//                    if(products.size()!=0){
+//                        for(Product p: products){
+//                            productRepo.create(p);
+//                        }
+//                    } else  {
+//                        //return  false;
+//                    }
+//                }
 
             }
 
@@ -329,6 +333,5 @@ public class MainActivity extends AppCompatActivity {
         builder.show();
 
     }
-
 
 }

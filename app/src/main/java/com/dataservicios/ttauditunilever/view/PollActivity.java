@@ -85,6 +85,7 @@ public class PollActivity extends AppCompatActivity {
     private Store                   store ;
     private Poll                    poll;
     private PollOption              pollOption;
+    private ArrayList<PollOption>   pollOptions;
     private PollDetail              pollDetail;
     private AuditRoadStore          auditRoadStore;
     private PollOptionRepo          pollOptionRepo;
@@ -192,6 +193,7 @@ public class PollActivity extends AppCompatActivity {
         auditRoadStore      = (AuditRoadStore)  auditRoadStoreRepo.findByStoreIdAndAuditId(store_id,audit_id);
         poll                = (Poll)            pollRepo.findByCompanyAuditIdAndOrder(auditRoadStore.getList().getCompany_audit_id(),orderPoll);
         product             = (Product)         productRepo.findById(product_id);
+        pollOptions         = (ArrayList<PollOption>) pollOptionRepo.findByPollId(poll.getId());
 
         poll.setCategory_product_id(category_product_id);
         poll.setProduct_id(product_id);
@@ -205,9 +207,7 @@ public class PollActivity extends AppCompatActivity {
         tvAuditoria.setText(auditRoadStore.getList().getFullname().toString());
         tvPoll.setText(poll.getQuestion().toString());
 
-
         establishigPropertyPool(orderPoll);
-
 
         imgShared.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -246,7 +246,6 @@ public class PollActivity extends AppCompatActivity {
                         selectedOptions="";
                         int counterSelected =0;
                         if(radioButtonArray != null) {
-
                             for(RadioButton r:radioButtonArray ) {
                                 if(r.isChecked()){
                                     selectedOptions=r.getTag().toString();
@@ -261,8 +260,15 @@ public class PollActivity extends AppCompatActivity {
                         if(checkBoxArray != null) {
                             for(CheckBox r:checkBoxArray ) {
                                 if(r.isChecked()){
-                                    selectedOptions.concat(r.getTag().toString()+"|");
+                                    selectedOptions= r.getTag().toString()+"|" + selectedOptions;
                                     counterSelected ++;
+                                }
+                            }
+                            for (PollOption m: pollOptions) {
+                                if (m.getComment()==1) {
+                                    commentOptions = etCommentOption.getText().toString() + "|" + commentOptions;
+                                } else {
+                                    commentOptions =  "|" + commentOptions;
                                 }
                             }
                             if(counterSelected==0){
@@ -278,11 +284,7 @@ public class PollActivity extends AppCompatActivity {
                                 return ;
                             }
                         }
-
-
-
                         commentOptions = etCommentOption.getText().toString();
-
                         new savePoll().execute();
                         dialog.dismiss();
                     }
@@ -389,7 +391,7 @@ public class PollActivity extends AppCompatActivity {
         pollDetail.setPriority(0);
 
         switch (orderPoll) {
-            case 1:
+            case 1: case 2:
                 if (isYesNo == 1) {
                     if (!AuditUtil.insertPollDetail(pollDetail)) return false;
                 } else if (isYesNo == 0) {
@@ -398,20 +400,12 @@ public class PollActivity extends AppCompatActivity {
                     if (!AuditUtil.closeAllAuditRoadStore(store_id, company_id)) return false;
                 }
                 break;
-            case 2:
-                if (isYesNo == 1) {
-                    if (!AuditUtil.insertPollDetail(pollDetail)) return false;
-                } else if (isYesNo == 0) {
-                    if (!AuditUtil.insertPollDetail(pollDetail)) return false;
-                    if (!AuditUtil.closeAuditStore(audit_id, store_id, company_id, route.getId())) return false;
-                    if (!AuditUtil.closeAllAuditRoadStore(store_id, company_id)) return false;
-                }
-                break;
-            case 3: case 4: case 5: case 6: case 7:case 8: case 9:
+
+            case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13:
                 if (!AuditUtil.insertPollDetail(pollDetail)) return false;
                 break;
 
-            case 10:
+            case 14:
                 if (!AuditUtil.insertPollDetail(pollDetail)) return false;
                 if (!AuditUtil.closeAuditStore(audit_id, store_id, company_id, route.getId()))return false;
                 if (!AuditUtil.closeAllAuditRoadStore(store_id, company_id)) return false;
@@ -427,7 +421,7 @@ public class PollActivity extends AppCompatActivity {
     private void resulProcess (int orderPoll) {
 
         switch (orderPoll) {
-            case 1:
+            case 1: case 2:
 
                 if(isYesNo==1) {
                     poll.setOrder(orderPoll + 1);
@@ -442,100 +436,14 @@ public class PollActivity extends AppCompatActivity {
                     finish();
                 }
                 break;
-            case 2:
-                if(isYesNo==1) {
-//                    poll.setOrder(orderPoll + 1);
-//                    PollActivity.createInstance(activity, store_id,audit_id,poll);
-//                    finish();
-                    Bundle bundle = new Bundle();
-                    bundle.putInt("store_id",store_id);
-                    bundle.putInt("audit_id",audit_id);
 
-                    Intent intent = new Intent(activity, ProductCompetityActivity.class);
-                    intent.putExtras(bundle);
-                    startActivity(intent);
-                    finish();
-
-                } else if(isYesNo==0){
-                    ArrayList<AuditRoadStore> auditRoadStores = (ArrayList<AuditRoadStore>) auditRoadStoreRepo.findByStoreId(store_id);
-                    for (AuditRoadStore m: auditRoadStores){
-                        m.setAuditStatus(1);
-                        auditRoadStoreRepo.update(m);
-                    }
-                    finish();
-                }
-                break;
-
-            case 3:
-
-                if(isYesNo==1) {
-                    product.setStatus(1);
-                    productRepo.update(product);
-                    finish();
-
-                } else if(isYesNo==0){
-                    poll.setOrder(4);
-                    PollActivity.createInstance(activity, store_id,audit_id,poll);
-                    finish();
-                }
-                break;
-            case 4:
-
-                if(isYesNo==1) {
-                    poll.setOrder(5);
-                    PollActivity.createInstance(activity, store_id,audit_id,poll);
-                    finish();
-
-                } else if(isYesNo==0){
-                    product.setStatus(1);
-                    productRepo.update(product);
-                    finish();
-                }
-                break;
-            case 5:
-//                poll.setOrder(orderPoll + 1);
-//                PollActivity.createInstance(activity, store_id,audit_id,poll);
-                product.setStatus(1);
-                productRepo.update(product);
-                finish();
-                break;
-
-            case 6:
-                if(isYesNo==1) {
-                    poll.setOrder(7);
-                    PollActivity.createInstance(activity, store_id,audit_id,poll);
-                    finish();
-                } else if(isYesNo==0){
-                    poll.setOrder(8);
-                    PollActivity.createInstance(activity, store_id,audit_id,poll);
-                    finish();
-                }
-
-                break;
-            case 7:
-                poll.setOrder(8);
+            case 3: case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13:
+                poll.setOrder(orderPoll + 1);
                 PollActivity.createInstance(activity, store_id,audit_id,poll);
                 finish();
                 break;
 
-            case 8:
-                if(isYesNo==1) {
-                    poll.setOrder(9);
-                    PollActivity.createInstance(activity, store_id,audit_id,poll);
-                    finish();
-                } else if(isYesNo==0){
-                    poll.setOrder(10);
-                    PollActivity.createInstance(activity, store_id,audit_id,poll);
-                    finish();
-                }
-                break;
-            case 9:
-                poll.setOrder(10);
-                PollActivity.createInstance(activity, store_id,audit_id,poll);
-                finish();
-                break;
-
-            case 10:
+            case 14:
                 ArrayList<AuditRoadStore> auditRoadStores = (ArrayList<AuditRoadStore>) auditRoadStoreRepo.findByStoreId(store_id);
                 for (AuditRoadStore m: auditRoadStores){
                     m.setAuditStatus(1);
@@ -560,7 +468,7 @@ public class PollActivity extends AppCompatActivity {
     private void establishigPropertyPool(int orderPoll) {
         if(poll.getMedia() == 1)  btPhoto.setVisibility(View.VISIBLE); else btPhoto.setVisibility(View.GONE);
         if(poll.getSino() == 1)  swYesNo.setVisibility(View.VISIBLE); else swYesNo.setVisibility(View.GONE);
-       // if(poll.getComment() == 1) showCommentControl(true); else showCommentControl(false);
+        // if(poll.getComment() == 1) showCommentControl(true); else showCommentControl(false);
         if(poll.getComment() == 1) showCommentControl(true,poll.getComentType()); else showCommentControl(false, poll.getComentType());
         switch (orderPoll) {
             case 1:
@@ -591,8 +499,14 @@ public class PollActivity extends AppCompatActivity {
                     }
                 });
                 break;
-            case 5: case 6: case 7: case 8: case 9: case 10:
-                showPollOptionsControl(true);
+            case 5: case 6: case 7: case 8: case 9: case 10: case 11: case 12: case 13: case 14:
+                swYesNo.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if(isChecked) showPollOptionsControl(true); else showPollOptionsControl(false);
+                        //if(isChecked) btPhoto.setVisibility(View.GONE); else btPhoto.setVisibility(View.VISIBLE);
+                    }
+                });
                 break;
 
 
@@ -627,19 +541,13 @@ public class PollActivity extends AppCompatActivity {
             lyComment.removeAllViews();
         }
     }
-
-
     /**
      * Muestra las opciones de un Poll siempre y cuando tenga option
      * @param visibility
      */
     private void showPollOptionsControl(boolean visibility) {
-        ArrayList<PollOption> pollOptions;
-        pollOptions = (ArrayList<PollOption>) pollOptionRepo.findByPollId(poll.getId());
-
-        lyOptions.removeAllViews();
-        lyOptionComment.removeAllViews();
-        radioButtonArray = null;
+//        ArrayList<PollOption>  pollOptions;
+//        pollOptions = (ArrayList<PollOption>) pollOptionRepo.findByPollId(poll.getId());
 
         if(radioGroup != null ){
             radioGroup.clearCheck();
@@ -648,49 +556,67 @@ public class PollActivity extends AppCompatActivity {
             lyOptions.removeAllViews();
             lyOptionComment.removeAllViews();
             if(poll.getOptions()== 1) {
-                if(swYesNo.isChecked())isYesNo=1; else isYesNo =0; // Estableciendo valor de la variable isYesNo
                 if (poll.getOption_type() == 0) {
                     radioGroup = new RadioGroup(activity);
                     radioGroup.setOrientation(LinearLayout.VERTICAL);
-
+                    radioButtonArray = new RadioButton[pollOptions.size()];
                     int counter =0;
-                    for (PollOption po: pollOptions) {
-                        if (isYesNo == po.getOption_yes_no()) {
-                            counter ++;
-                        }
-                    }
-//                    radioButtonArray = new RadioButton[pollOptions.size()];
-                    radioButtonArray = new RadioButton[counter];
-                    counter =0;
                     for (PollOption po: pollOptions){
-
-                        if (isYesNo == po.getOption_yes_no()) {
-                            radioButtonArray[counter] = new RadioButton(activity);
-                            radioButtonArray[counter].setText(po.getOptions());
-                            radioButtonArray[counter].setTag(po.getCodigo());
-                            if(po.getComment()==1) {
-                                radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        lyOptionComment.removeAllViews();
-                                        etCommentOption.setHint(activity.getString(R.string.text_comment));
-                                        lyOptionComment.addView(etCommentOption);
-                                    }
-                                });
-                            } else if(po.getComment()==0){
-                                radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View v) {
-                                        lyOptionComment.removeAllViews();
-                                    }
-                                });
-                            }
-                            radioGroup.addView(radioButtonArray[counter]);
-                            counter ++;
+                        radioButtonArray[counter] = new RadioButton(activity);
+                        radioButtonArray[counter].setText(po.getOptions());
+                        radioButtonArray[counter].setTag(po.getCodigo());
+                        if(po.getComment()==1) {
+                            radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    lyOptionComment.removeAllViews();
+                                    etCommentOption.setHint(activity.getString(R.string.text_comment));
+                                    lyOptionComment.addView(etCommentOption);
+                                }
+                            });
+                        } else if(po.getComment()==0){
+                            radioButtonArray[counter].setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    lyOptionComment.removeAllViews();
+                                }
+                            });
                         }
-
+                        radioGroup.addView(radioButtonArray[counter]);
+                        counter ++;
                     }
                     lyOptions.addView(radioGroup);
+                } else if (poll.getOption_type() == 1) {
+                    checkBoxArray = new CheckBox[pollOptions.size()];
+                    int  counter =0;
+                    for ( final PollOption po: pollOptions){
+                        checkBoxArray[counter] = new CheckBox(activity);
+                        checkBoxArray[counter].setText(po.getOptions());
+                        checkBoxArray[counter].setTag(po.getCodigo());
+                        if(po.getComment()==1) {
+
+                            checkBoxArray[counter].setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                @Override
+                                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                                    if (buttonView.isChecked()) {
+                                        lyOptionComment.removeAllViews();
+                                        etCommentOption.setHint(activity.getString(R.string.text_comment));
+                                        etCommentOption.setTag(po.getCodigo().toString());
+                                        lyOptionComment.addView(etCommentOption);
+                                    }
+                                    else
+                                    {
+                                        //not checked
+                                        lyOptionComment.removeAllViews();
+                                    }
+                                }
+                            });
+
+                        }
+                        lyOptions.addView(checkBoxArray[counter]);
+                        counter ++;
+                    }
+                    //lyOptions.addView(radioGroup);
                 }
             }
         } else {
@@ -698,20 +624,18 @@ public class PollActivity extends AppCompatActivity {
             lyOptions.removeAllViews();
             lyOptionComment.removeAllViews();
             radioButtonArray = null;
+            checkBoxArray = null;
         }
-
     }
+
 
     @Override
     public void onBackPressed() {
-
         if (poll.getOrder() > 1) {
             alertDialogBasico(getString(R.string.message_audit_init) );
-
         } else {
             super.onBackPressed();
         }
-
     }
     private void alertDialogBasico(String message) {
 
